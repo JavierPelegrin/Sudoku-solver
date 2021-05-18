@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "structure.h"
 
@@ -9,8 +11,9 @@
 struct s_node{
     int id;
     int t[9];
-    char root;
-    node node[21];
+    int sizeT;
+    int root;
+    node node[20];
 };
 
 struct s_sudoku {
@@ -21,13 +24,15 @@ struct s_sudoku {
 
 //--- structure des nodes ---
 
-node createNode(char v,int id){
+node createNode(int v, int id){
     node n = malloc(sizeof(struct s_node));
     n->id = id;
-    if (v != '0'){
+    n->sizeT = 1;
+    if (v == 0){
         for(int i = 0; i < 9; i++){
             n->t[i] = i+1;
         }
+        n->sizeT = 9;
     }
     n->root = v;
     return n;
@@ -37,24 +42,100 @@ node getNode(node i[], int id){
     return i[id];
 }
 
-void createlinks(sudoku *s){
+void createLinks(sudoku *s){
+
+    int matrix[9][9];
+    int k = 0;
+    for(int i = 0; i < 9; i++){
+        for(int j = 0; j < 9; j++){
+            matrix[i][j] = k;
+            k++;
+        }
+    }
+
     int multiplicator = 0;
-    int k;
+    k = 0;
+    int i;
+    int cur;
     for(int p = 0; p < 81; p++){
         if (multiplicator+9 == p){
             multiplicator +=9; 
         }
-        for(int i = 0; i < 20; i++){
-            if (i < 9){
-                (*s)->tab[p]->node[i] =  (*s)->tab[((i)%9)+multiplicator];
+        i = 0;
+        cur = 0;
+        while (i < 17){
+            if (i < 8){ //horizontal
+                if ((*s)->tab[p]->id != (*s)->tab[((cur)%9)+multiplicator]->id ){
+                    (*s)->tab[p]->node[i] = (*s)->tab[((cur)%9)+multiplicator];
+                    i++;
+                }
                 k = p;
-            }else if(i < 17){
-                (*s)->tab[p]->node[i] = (*s)->tab[((k)%81)];
+            }else if(i < 16){ //vertical
+                if ((*s)->tab[p]->id != (*s)->tab[k]->id){
+                    (*s)->tab[p]->node[i] = (*s)->tab[(k)];
+                    i++;
+                }
                 k = (k+9)%81;
-            }else {
+            } else { // cuadrado
                 //como creamos los enlaces del nodo a el cuadrado ?
-                (*s)->tab[p]->node[i] = NULL;
+                int c = (multiplicator / 9);
+                int l = (p % 9);
+                if(c%3 == 0){
+                    if (l % 3 == 0){
+                        (*s)->tab[p]->node[i]   = (*s)->tab[matrix[c+1][l+1]];
+                        (*s)->tab[p]->node[i+1] = (*s)->tab[matrix[c+1][l+2]];
+                        (*s)->tab[p]->node[i+2] = (*s)->tab[matrix[c+2][l+1]];
+                        (*s)->tab[p]->node[i+3] = (*s)->tab[matrix[c+2][l+2]];
+                    }else if(l % 3 == 1){
+                        (*s)->tab[p]->node[i]   = (*s)->tab[matrix[c+1][l-1]];
+                        (*s)->tab[p]->node[i+1] = (*s)->tab[matrix[c+1][l+1]];
+                        (*s)->tab[p]->node[i+2] = (*s)->tab[matrix[c+2][l-1]];
+                        (*s)->tab[p]->node[i+3] = (*s)->tab[matrix[c+2][l+1]];
+                    }else if(l% 3 == 2){
+                        (*s)->tab[p]->node[i]   = (*s)->tab[matrix[c+1][l-2]];
+                        (*s)->tab[p]->node[i+1] = (*s)->tab[matrix[c+1][l-1]];
+                        (*s)->tab[p]->node[i+2] = (*s)->tab[matrix[c+2][l-2]];
+                        (*s)->tab[p]->node[i+3] = (*s)->tab[matrix[c+2][l-1]];
+                    }
+                }else if (c%3 == 1) {
+                    if (l % 3 == 0){
+                        (*s)->tab[p]->node[i]   = (*s)->tab[matrix[c-1][l+1]];
+                        (*s)->tab[p]->node[i+1] = (*s)->tab[matrix[c-1][l+2]];
+                        (*s)->tab[p]->node[i+2] = (*s)->tab[matrix[c+1][l+1]];
+                        (*s)->tab[p]->node[i+3] = (*s)->tab[matrix[c+1][l+2]];
+                    }else if(l% 3 == 1){
+                        (*s)->tab[p]->node[i]   = (*s)->tab[matrix[c-1][l-1]];
+                        (*s)->tab[p]->node[i+1] = (*s)->tab[matrix[c-1][l+1]];
+                        (*s)->tab[p]->node[i+2] = (*s)->tab[matrix[c+1][l-1]];
+                        (*s)->tab[p]->node[i+3] = (*s)->tab[matrix[c+1][l+1]];
+                    }else if(l % 3 == 2){
+                        (*s)->tab[p]->node[i]   = (*s)->tab[matrix[c-1][l-2]];
+                        (*s)->tab[p]->node[i+1] = (*s)->tab[matrix[c-1][l-1]];
+                        (*s)->tab[p]->node[i+2] = (*s)->tab[matrix[c+1][l-2]];
+                        (*s)->tab[p]->node[i+3] = (*s)->tab[matrix[c+1][l-1]];
+                    }
+                }else if (c%3 == 2) {
+                    if (l % 3 == 0){
+                        (*s)->tab[p]->node[i]   = (*s)->tab[matrix[c-2][l+1]];
+                        (*s)->tab[p]->node[i+1] = (*s)->tab[matrix[c-2][l+2]];
+                        (*s)->tab[p]->node[i+2] = (*s)->tab[matrix[c-1][l+1]];
+                        (*s)->tab[p]->node[i+3] = (*s)->tab[matrix[c-1][l+2]];
+                    }else if(l % 3 == 1){
+                        (*s)->tab[p]->node[i]   = (*s)->tab[matrix[c-2][l-1]];
+                        (*s)->tab[p]->node[i+1] = (*s)->tab[matrix[c-2][l+1]];
+                        (*s)->tab[p]->node[i+2] = (*s)->tab[matrix[c-1][l-1]];
+                        (*s)->tab[p]->node[i+3] = (*s)->tab[matrix[c-1][l+1]];
+                    }else if(l % 3 == 2){
+                        (*s)->tab[p]->node[i]   = (*s)->tab[matrix[c-2][l-2]];
+                        (*s)->tab[p]->node[i+1] = (*s)->tab[matrix[c-2][l-1]];
+                        (*s)->tab[p]->node[i+2] = (*s)->tab[matrix[c-1][l-2]];
+                        (*s)->tab[p]->node[i+3] = (*s)->tab[matrix[c-1][l-1]];
+                    }
+                }
+                
+                i++;
             }
+            cur++;
         }
     }
 }
@@ -69,19 +150,118 @@ sudoku createSudoku(){
 }
 
 void addNode(sudoku *s, char v, int id){
-    (*s)->tab[id] = createNode(v, id);
+    if (v != '0'){
+        (*s)->solved++;
+    }
+    (*s)->tab[id] = createNode(atoi(&v), id);
 }
 
 bool isSolved(const sudoku s){
-    return s->solved == 81;
+    return s->solved >= 81;
 }
 
 void printNode(const sudoku s){
     for(int i = 0; i < 81; i++){
-        printf("%c ", s->tab[i]->root);
+        if (i%9 == 0){
+            printf("\n");
+        }
+        printf("%d ", s->tab[i]->root);
     }
 }
 
+
+sudoku solveSudoku(sudoku *s){
+    int i = 0;
+    printf("\n\nresolviendo ...\n");
+    while(isSolved(*s) != true){
+        if(((*s)->tab[i])->root  == 0){
+            // printf("este %d, %d \n",(*s)->tab[i]->id,(*s)->tab[i]->sizeT);
+            for(int j = 0; j < 9; j++){
+                for(int k = 0; k < 20; k++){ // cambiar a 20
+                    if(i == 44){
+                        printf("root : %d \n enlaces: ",(*s)->tab[i]->root);
+                        for(int j = 0; j < 20; j++){
+                            printf("%d ",(*s)->tab[i]->node[j]->root);
+                        }
+                        printf("\ntab:");
+                        for(int j = 0; j < 9; j++){
+                            printf("%d ",(*s)->tab[i]->t[j]);
+                        }
+                        printf("\n");
+                    }
+                    if ((*s)->tab[i]->t[j] == (*s)->tab[i]->node[k]->root){
+                        (*s)->tab[i]->t[j] = -1;
+                        (*s)->tab[i]->sizeT-=1;
+                        if ((*s)->tab[i]->sizeT == 1) {
+                            for(int h = 0; h < 9; h++){
+                                if((*s)->tab[i]->t[h] != -1){
+                                    (*s)->tab[i]->root = (*s)->tab[i]->t[h];
+                                }
+                            }
+                            (*s)->solved++;
+                            printf("node : %d, num: %d\n",(*s)->tab[i]->id , (*s)->tab[i]->root);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        i = (i+1)%81;
+        // if(i == 67){
+        //     printf("links ");
+        //     for(int j = 0; j < 20; j++){
+        //         printf("%d ",(*s)->tab[i]->node[j]->root);
+        //     }
+        //     break;
+        // }
+    }
+    return *s;
+}
+
+
+
+
 void testLinks(const sudoku s){
-    
+    printf("\n");
+    for (int j = 0; j < 81; j++){
+        printf("links de nodo %d : ",j+1);
+        for(int i = 0; i < 20; i++){
+            printf("%d ",s->tab[j]->node[i]->id+1);
+        }
+        printf("\n");
+    }
+
+    // printf("links de nodo 21 : ");
+    // for(int i = 0; i < 20; i++){
+    //     printf("%d ",s->tab[20]->node[i]->id+1);
+    // }
+    // printf("\n");
+
+    // printf("links de nodo 41 : ");
+    // for(int i = 0; i < 20; i++){
+    //     printf("%d ",s->tab[40]->node[i]->id+1);
+    // }
+    // printf("\n");
+}
+
+char itoc(int numero){
+    return numero + '0';
+}
+
+void exportSudoku(const sudoku s){
+    char *c = malloc(sizeof(char));
+    int f = open("./gridSolved.txt", O_CREAT|O_WRONLY|O_TRUNC);
+    sprintf(c,"%d",s->tab[0]->root);
+    write(f, c, 1);
+    write(f," ",1);
+    for(int i = 1; i < 81; i++){
+        if (i%9 == 0){
+            write(f,"\n",1);
+        }
+        sprintf(c,"%d",s->tab[i]->root);
+        write(f, c, 1);
+        write(f," ",1);
+    }
+    free(c);
+    close(f);
 }

@@ -11,7 +11,7 @@ typedef struct s_sudoku *sudoku;
 
 //--- nodes --- 
 
-node createNode(char v, int id);
+node createNode(int v, int id);
 
 node getNode(node i[], int id);
 
@@ -29,5 +29,9 @@ bool isSolved(const sudoku s);
 void printNode(const sudoku s);
 
 void testLinks(const sudoku s);
+
+sudoku solveSudoku(sudoku *s);
+
+void exportSudoku(const sudoku s);
 
 #endif

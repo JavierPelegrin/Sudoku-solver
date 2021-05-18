@@ -3,6 +3,8 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/stat.h> 
+#include <sys/types.h>
 
 
 #include "structure.h"
@@ -11,8 +13,9 @@ int main(){
 
     char pwd[64];
     char c;
+    printf("File : ");
     // scanf("%s",pwd);
-    strcpy(pwd,"./grid.txt");
+    strcpy(pwd,"./gridEasy.txt");
     int grid = open(pwd, O_RDONLY);
     if(grid == -1){
         perror("File");
@@ -27,8 +30,12 @@ int main(){
             i++;
         }
     }
-    createSudoku(&s);
+    createLinks(&s);
     printNode(s);
+    // testLinks(s);
+    s = solveSudoku(&s);
+    printNode(s);
+    exportSudoku(s);
     close(grid);
     return 0;
 }
