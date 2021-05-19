@@ -172,23 +172,27 @@ void printNode(const sudoku s){
 
 sudoku solveSudoku(sudoku *s){
     int i = 0;
+    int contador = 0;
+    int backtraquing = 0;
+    int n,m;
+    struct s_sudoku cp_s;
     printf("\n\nresolviendo ...\n");
     while(isSolved(*s) != true){
         if(((*s)->tab[i])->root  == 0){
             // printf("este %d, %d \n",(*s)->tab[i]->id,(*s)->tab[i]->sizeT);
             for(int j = 0; j < 9; j++){
                 for(int k = 0; k < 20; k++){ // cambiar a 20
-                    if(i == 44){
-                        printf("root : %d \n enlaces: ",(*s)->tab[i]->root);
-                        for(int j = 0; j < 20; j++){
-                            printf("%d ",(*s)->tab[i]->node[j]->root);
-                        }
-                        printf("\ntab:");
-                        for(int j = 0; j < 9; j++){
-                            printf("%d ",(*s)->tab[i]->t[j]);
-                        }
-                        printf("\n");
-                    }
+                    // if(i == 44){ // Listar imformacion sobre un nodo
+                    //     printf("root : %d \n enlaces: ",(*s)->tab[i]->root);
+                    //     for(int j = 0; j < 20; j++){
+                    //         printf("%d ",(*s)->tab[i]->node[j]->root);
+                    //     }
+                    //     printf("\ntab:");
+                    //     for(int j = 0; j < 9; j++){
+                    //         printf("%d ",(*s)->tab[i]->t[j]);
+                    //     }
+                    //     printf("\n");
+                    // }
                     if ((*s)->tab[i]->t[j] == (*s)->tab[i]->node[k]->root){
                         (*s)->tab[i]->t[j] = -1;
                         (*s)->tab[i]->sizeT-=1;
@@ -199,7 +203,8 @@ sudoku solveSudoku(sudoku *s){
                                 }
                             }
                             (*s)->solved++;
-                            printf("node : %d, num: %d\n",(*s)->tab[i]->id , (*s)->tab[i]->root);
+                            contador = -1;
+                            printf("node : %d, num: %d\n",(*s)->tab[i]->id , (*s)->tab[i]->root); // nodo resuelto
                         }
                         break;
                     }
@@ -207,6 +212,57 @@ sudoku solveSudoku(sudoku *s){
             }
         }
         i = (i+1)%81;
+        if (i == 80){
+            contador++;
+        }
+
+        if(contador == 10 && backtraquing == 0){
+            cp_s = (**s);
+            n = 0;
+            m = 2;
+            while((*s)->tab[n]->sizeT == m){
+                n++;
+                if (n >= 81){
+                    m++;
+                    n = 0;
+                }
+            }
+            for(int h = 0; h < 9; h++){
+                if((*s)->tab[n]->t[h] != -1){
+                    (*s)->tab[n]->root = (*s)->tab[n]->t[h];
+                }
+            }
+            printf("sizeT :%d, node : %d, num: %d\n", (*s)->tab[n]->sizeT, (*s)->tab[n]->id, (*s)->tab[n]->root);
+            (*s)->solved++;
+            backtraquing = (backtraquing + 1) % m; contador = -1;
+        }
+
+        if (contador == 10 && backtraquing == 1){
+            int cp;
+            printf("backtraking ...\n");
+            for(int h = 0; h < 9; h++){
+                if((*s)->tab[n]->t[h] != -1 && (*s)->tab[n]->t[h] != (*s)->tab[n]->root){
+                    cp = (*s)->tab[n]->t[h];
+                }
+            }
+            (**s) = cp_s;
+            (*s)->tab[n]->root = cp;
+            backtraquing = (backtraquing + 1) % m; contador = -1;
+        }
+
+        if (contador == 10 && backtraquing == 2){
+            int cp;
+            printf("backtraking ...\n");
+            for(int h = 0; h < 9; h++){
+                if((*s)->tab[n]->t[h] != -1 && (*s)->tab[n]->t[h] != (*s)->tab[n]->root){
+                    cp = (*s)->tab[n]->t[h];
+                }
+            }
+            (**s) = cp_s;
+            (*s)->tab[i]->root = cp;
+            backtraquing = (backtraquing + 1) % m; contador = -1;
+        }
+        
         // if(i == 67){
         //     printf("links ");
         //     for(int j = 0; j < 20; j++){
