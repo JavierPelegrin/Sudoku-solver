@@ -32,6 +32,8 @@ void testLinks(const sudoku s);
 
 sudoku solveSudoku(sudoku *s);
 
+void removeSudoku(sudoku s);
+
 void exportSudoku(const sudoku s);
 
 #endif

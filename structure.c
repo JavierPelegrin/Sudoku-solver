@@ -24,7 +24,32 @@ struct s_sudoku {
 };
 
 
-//--- structure des nodes ---
+// --- Debug part ---
+
+void printInfo(sudoku s, int i){
+    printf("info:\n");
+    printf("\testado del sudoku: %d\n",s->solved);
+    printf("\tnode id: %d\n",s->tab[i]->id);
+    printf("\tsizeT: %d\n", s->tab[i]->sizeT);
+    printf("\troot: %d\n",s->tab[i]->root);
+    for(int k = 0; k < 20; k++)
+        printf("\tEnlaces: %d\n",s->tab[i]->node[k]->root);
+    for(int k = 0; k < 9; k++)
+        printf("\ttab: %d\n",s->tab[i]->t[k]);
+}
+
+void testLinks(const sudoku s){
+    printf("\n");
+    for (int j = 0; j < 81; j++){
+        printf("links de nodo %d : ",j);
+        for(int i = 0; i < 20; i++){
+            printf("%d ",s->tab[j]->node[i]->id);
+        }
+        printf("\n");
+    }
+}
+
+//--- structure of nodes ---
 
 node createNode(int v, int id){
     node n = malloc(sizeof(struct s_node));
@@ -77,8 +102,7 @@ void createLinks(sudoku *s){
                     i++;
                 }
                 k = (k+9)%81;
-            } else { // cuadrado
-                //como creamos los enlaces del nodo a el cuadrado ?
+            } else { // quadrant
                 int c = (multiplicator / 9);
                 int l = (p % 9);
                 if(c%3 == 0){
@@ -141,6 +165,11 @@ void createLinks(sudoku *s){
     }
 }
 
+void removeNode(node n){
+    free(n);
+}
+
+
 
 //--- Sudoku ---
 
@@ -197,10 +226,10 @@ sudoku solveSudoku(sudoku *s){
             }
             (*s)->solved++;
             contador = -1;
-            //printf("node : %d, num: %d\n",(*s)->tab[i]->id , (*s)->tab[i]->root); // nodo resuelto
+            // printf("node : %d, num: %d\n",(*s)->tab[i]->id , (*s)->tab[i]->root); // nodo resuelto
         }
         else if ((*s)->tab[i]->sizeT == 0){
-            printf("pid = %d\n",getpid());
+            // printf("pid = %d\n",getpid());
             exit(0);
         }
         i = (i+1)%81;
@@ -219,14 +248,21 @@ sudoku solveSudoku(sudoku *s){
                 while((*s)->tab[i]->sizeT != 2){
                     i = (i+1)%81;
                 }
-                int j = 9;
-                while((*s)->tab[i]->t[j] == -1){
-                    j = (j - 1)%9;
+                int j = 8;
+                while(j > 0){
+                    if ((*s)->tab[i]->t[j] != -1){
+                        break;
+                    }
+                    j = (j - 1);
                 }
+                // printf("padre : j = %d, id:%d, num %d\n",j,i,(*s)->tab[i]->t[j]);
                 (*s)->tab[i]->root = (*s)->tab[i]->t[j];
                 (*s)->solved++;
+                (*s)->tab[i]->t[j] = -1;
+                (*s)->tab[i]->sizeT--;
                 contador = -1;
-                *s = solveSudoku(s);
+                //return *s;
+                return solveSudoku(s);
             }else{
                 // hijo
                 int i = 0;
@@ -234,53 +270,38 @@ sudoku solveSudoku(sudoku *s){
                     i = (i+1)%81;
                 }
                 int j = 0;
-                while((*s)->tab[i]->t[j] == -1){
-                    j = (j + 1)%9;
+                while(j < 9){
+                    if ((*s)->tab[i]->t[j] != -1){
+                        break;
+                    }
+                    j = (j + 1);
                 }
+                // printf("hijo : j = %d, id:%d, num %d\n",j,i,(*s)->tab[i]->t[j]);
+                
+                // printInfo(*s, i);
                 (*s)->tab[i]->root = (*s)->tab[i]->t[j];
                 (*s)->solved++;
+                (*s)->tab[i]->t[j] = -1;
+                (*s)->tab[i]->sizeT--;
                 contador = -1;
-
-                *s = solveSudoku(s);
+                //return *s;
+                return solveSudoku(s);
             }
         }
-        
-        // if(i == 67){
-        //     printf("links ");
-        //     for(int j = 0; j < 20; j++){
-        //         printf("%d ",(*s)->tab[i]->node[j]->root);
-        //     }
-        //     break;
-        // }
     }
     return *s;
 }
 
 
-
-
-void testLinks(const sudoku s){
-    printf("\n");
-    for (int j = 0; j < 81; j++){
-        printf("links de nodo %d : ",j+1);
-        for(int i = 0; i < 20; i++){
-            printf("%d ",s->tab[j]->node[i]->id+1);
-        }
-        printf("\n");
+void removeSudoku(sudoku s){
+    for(int i = 0; i < 81; i++){
+        removeNode(s->tab[i]);
     }
-
-    // printf("links de nodo 21 : ");
-    // for(int i = 0; i < 20; i++){
-    //     printf("%d ",s->tab[20]->node[i]->id+1);
-    // }
-    // printf("\n");
-
-    // printf("links de nodo 41 : ");
-    // for(int i = 0; i < 20; i++){
-    //     printf("%d ",s->tab[40]->node[i]->id+1);
-    // }
-    // printf("\n");
+    free(s);
 }
+
+
+//--- Utilities ---
 
 char itoc(int numero){
     return numero + '0';
