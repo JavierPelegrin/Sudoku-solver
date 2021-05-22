@@ -9,6 +9,14 @@
 
 #include "structure.h"
 
+/*
+https://www.sudoku-online.org/
+
+gridHard = #26695
+
+gridMedium = #25085
+
+*/
 int main(){
 
     char pwd[64];
@@ -33,8 +41,11 @@ int main(){
     createLinks(&s);
     printNode(s);
     // testLinks(s);
+    printf("\n");
     s = solveSudoku(&s);
     printNode(s);
+    printf("\n");
+
     exportSudoku(s);
     close(grid);
     return 0;

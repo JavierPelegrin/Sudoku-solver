@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 #include "structure.h"
 
@@ -28,12 +29,11 @@ struct s_sudoku {
 node createNode(int v, int id){
     node n = malloc(sizeof(struct s_node));
     n->id = id;
-    n->sizeT = 1;
+    n->sizeT = 9;
     if (v == 0){
         for(int i = 0; i < 9; i++){
             n->t[i] = i+1;
         }
-        n->sizeT = 9;
     }
     n->root = v;
     return n;
@@ -174,23 +174,11 @@ void printNode(const sudoku s){
 sudoku solveSudoku(sudoku *s){
     int i = 0;
     int contador = 0;
-    printf("\n\nresolviendo ...\n");
+    pid_t p;
     while(isSolved(*s) != true){
-        if(((*s)->tab[i])->root  == 0){
-            // printf("este %d, %d \n",(*s)->tab[i]->id,(*s)->tab[i]->sizeT);
+        if(((*s)->tab[i])->root == 0){
             for(int j = 0; j < 9; j++){
-                for(int k = 0; k < 20; k++){ // cambiar a 20
-                    // if(i == 44){ // Listar imformacion sobre un nodo
-                    //     printf("root : %d \n enlaces: ",(*s)->tab[i]->root);
-                    //     for(int j = 0; j < 20; j++){
-                    //         printf("%d ",(*s)->tab[i]->node[j]->root);
-                    //     }
-                    //     printf("\ntab:");
-                    //     for(int j = 0; j < 9; j++){
-                    //         printf("%d ",(*s)->tab[i]->t[j]);
-                    //     }
-                    //     printf("\n");
-                    // }
+                for(int k = 0; k < 20; k++){
                     if ((*s)->tab[i]->t[j] == (*s)->tab[i]->node[k]->root){
                         (*s)->tab[i]->t[j] = -1;
                         (*s)->tab[i]->sizeT-=1;
@@ -198,18 +186,21 @@ sudoku solveSudoku(sudoku *s){
                 }
             }
         }
-        if ((*s)->tab[i]->sizeT == 1) {
-            for(int j = 0; j<9; j++){
+
+
+        if ((*s)->tab[i]->root == 0 && (*s)->tab[i]->sizeT == 1) {
+            for(int j = 0; j < 9; j++){
+                //printf("tab[%d]->t[%d]:  %d\n",i,j,(*s)->tab[i]->t[j] ); // nodo resuelto
                 if((*s)->tab[i]->t[j] != -1){
                     (*s)->tab[i]->root = (*s)->tab[i]->t[j];
-                    break;
                 }
             }
             (*s)->solved++;
             contador = -1;
-            printf("node : %d, num: %d\n",(*s)->tab[i]->id , (*s)->tab[i]->root); // nodo resuelto
+            //printf("node : %d, num: %d\n",(*s)->tab[i]->id , (*s)->tab[i]->root); // nodo resuelto
         }
         else if ((*s)->tab[i]->sizeT == 0){
+            printf("pid = %d\n",getpid());
             exit(0);
         }
         i = (i+1)%81;
@@ -218,16 +209,40 @@ sudoku solveSudoku(sudoku *s){
         }
 
         if(contador == 20 ){
-            pid_t p = fork();
+            p = fork();
             if (p == -1){
                 perror("fork()");
                 exit(1);
-            }else if (p){
+            }else if (p == 0){
                 // padre
+                int i = 0;
+                while((*s)->tab[i]->sizeT != 2){
+                    i = (i+1)%81;
+                }
+                int j = 9;
+                while((*s)->tab[i]->t[j] == -1){
+                    j = (j - 1)%9;
+                }
+                (*s)->tab[i]->root = (*s)->tab[i]->t[j];
+                (*s)->solved++;
+                contador = -1;
+                *s = solveSudoku(s);
             }else{
                 // hijo
-            }
+                int i = 0;
+                while((*s)->tab[i]->sizeT != 2){
+                    i = (i+1)%81;
+                }
+                int j = 0;
+                while((*s)->tab[i]->t[j] == -1){
+                    j = (j + 1)%9;
+                }
+                (*s)->tab[i]->root = (*s)->tab[i]->t[j];
+                (*s)->solved++;
+                contador = -1;
 
+                *s = solveSudoku(s);
+            }
         }
         
         // if(i == 67){
