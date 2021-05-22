@@ -4,6 +4,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/types.h>
 
 #include "structure.h"
 
@@ -173,9 +174,6 @@ void printNode(const sudoku s){
 sudoku solveSudoku(sudoku *s){
     int i = 0;
     int contador = 0;
-    int backtraquing = 0;
-    int n,m;
-    struct s_sudoku cp_s;
     printf("\n\nresolviendo ...\n");
     while(isSolved(*s) != true){
         if(((*s)->tab[i])->root  == 0){
@@ -196,87 +194,40 @@ sudoku solveSudoku(sudoku *s){
                     if ((*s)->tab[i]->t[j] == (*s)->tab[i]->node[k]->root){
                         (*s)->tab[i]->t[j] = -1;
                         (*s)->tab[i]->sizeT-=1;
-                        if ((*s)->tab[i]->sizeT == 1) {
-                            for(int h = 0; h < 9; h++){
-                                if((*s)->tab[i]->t[h] != -1){
-                                    (*s)->tab[i]->root = (*s)->tab[i]->t[h];
-                                }
-                            }
-                            (*s)->solved++;
-                            contador = -1;
-                            printf("node : %d, num: %d\n",(*s)->tab[i]->id , (*s)->tab[i]->root); // nodo resuelto
-                        }
-                        break;
                     }
                 }
             }
+        }
+        if ((*s)->tab[i]->sizeT == 1) {
+            for(int j = 0; j<9; j++){
+                if((*s)->tab[i]->t[j] != -1){
+                    (*s)->tab[i]->root = (*s)->tab[i]->t[j];
+                    break;
+                }
+            }
+            (*s)->solved++;
+            contador = -1;
+            printf("node : %d, num: %d\n",(*s)->tab[i]->id , (*s)->tab[i]->root); // nodo resuelto
+        }
+        else if ((*s)->tab[i]->sizeT == 0){
+            exit(0);
         }
         i = (i+1)%81;
         if (i == 80){
             contador++;
         }
 
-        if(contador == 20 && backtraquing == 0){
-            printf("backtraking ...\n");
-            cp_s = (**s);
-            int cp;
-            n = 0;
-            m = 2;
-            // for(int i = 0; i<81;i++){
-            //     printf("sizeT :%d, node : %d\n", (*s)->tab[i]->sizeT, (*s)->tab[i]->id);
-            // }
-            while((*s)->tab[n]->sizeT != m){
-                n++;
-                if (n >= 81){
-                    m++;
-                    n = 0;
-                }
+        if(contador == 20 ){
+            pid_t p = fork();
+            if (p == -1){
+                perror("fork()");
+                exit(1);
+            }else if (p){
+                // padre
+            }else{
+                // hijo
             }
 
-            for(int h = 0; h < 9; h++){
-                if((*s)->tab[n]->t[h] != -1){
-                    cp = (*s)->tab[n]->t[h];
-                    break;
-                }
-            }
-            printf("este node :%d, num : %d,\n\n", (*s)->tab[n]->id, (*s)->tab[n]->root);
-            printf("este node :%d, num : %d,\n", (*s)->tab[n]->id, (*s)->tab[n]->root);
-
-            (*s)->tab[n]->root = cp;
-            (*s)->solved++;
-            backtraquing = (backtraquing + 1) % m; contador = -1;
-        }
-
-        if (contador == 20 && backtraquing == 1){
-            int cp;
-            printf("backtraking ...\n");
-            printf("contador: %d\n",contador);
-
-            for(int h = 0; h < 9; h++){
-                if((*s)->tab[n]->t[h] != -1 && (*s)->tab[n]->t[h] != (*s)->tab[n]->root){
-                    cp = (*s)->tab[n]->t[h];
-                    break;
-                }
-            }
-            (**s) = cp_s;
-            (*s)->tab[n]->root = cp;
-            printf("este node :%d, num : %d,\n", (*s)->tab[n]->id, (*s)->tab[n]->root);
-            return *s;
-            backtraquing = (backtraquing + 1) % m; contador = -1;
-        }
-
-        if (contador == 10 && backtraquing == 2){
-            int cp;
-            printf("backtraking ...\n");
-            for(int h = 0; h < 9; h++){
-                if((*s)->tab[n]->t[h] != -1 && (*s)->tab[n]->t[h] != (*s)->tab[n]->root){
-                    cp = (*s)->tab[n]->t[h];
-                    break;
-                }
-            }
-            (**s) = cp_s;
-            (*s)->tab[n]->root = cp;
-            backtraquing = (backtraquing + 1) % m; contador = -1;
         }
         
         // if(i == 67){
