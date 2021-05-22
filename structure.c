@@ -216,37 +216,52 @@ sudoku solveSudoku(sudoku *s){
             contador++;
         }
 
-        if(contador == 10 && backtraquing == 0){
+        if(contador == 20 && backtraquing == 0){
+            printf("backtraking ...\n");
             cp_s = (**s);
+            int cp;
             n = 0;
             m = 2;
-            while((*s)->tab[n]->sizeT == m){
+            // for(int i = 0; i<81;i++){
+            //     printf("sizeT :%d, node : %d\n", (*s)->tab[i]->sizeT, (*s)->tab[i]->id);
+            // }
+            while((*s)->tab[n]->sizeT != m){
                 n++;
                 if (n >= 81){
                     m++;
                     n = 0;
                 }
             }
+
             for(int h = 0; h < 9; h++){
                 if((*s)->tab[n]->t[h] != -1){
-                    (*s)->tab[n]->root = (*s)->tab[n]->t[h];
+                    cp = (*s)->tab[n]->t[h];
+                    break;
                 }
             }
-            printf("sizeT :%d, node : %d, num: %d\n", (*s)->tab[n]->sizeT, (*s)->tab[n]->id, (*s)->tab[n]->root);
+            printf("este node :%d, num : %d,\n\n", (*s)->tab[n]->id, (*s)->tab[n]->root);
+            printf("este node :%d, num : %d,\n", (*s)->tab[n]->id, (*s)->tab[n]->root);
+
+            (*s)->tab[n]->root = cp;
             (*s)->solved++;
             backtraquing = (backtraquing + 1) % m; contador = -1;
         }
 
-        if (contador == 10 && backtraquing == 1){
+        if (contador == 20 && backtraquing == 1){
             int cp;
             printf("backtraking ...\n");
+            printf("contador: %d\n",contador);
+
             for(int h = 0; h < 9; h++){
                 if((*s)->tab[n]->t[h] != -1 && (*s)->tab[n]->t[h] != (*s)->tab[n]->root){
                     cp = (*s)->tab[n]->t[h];
+                    break;
                 }
             }
             (**s) = cp_s;
             (*s)->tab[n]->root = cp;
+            printf("este node :%d, num : %d,\n", (*s)->tab[n]->id, (*s)->tab[n]->root);
+            return *s;
             backtraquing = (backtraquing + 1) % m; contador = -1;
         }
 
@@ -256,10 +271,11 @@ sudoku solveSudoku(sudoku *s){
             for(int h = 0; h < 9; h++){
                 if((*s)->tab[n]->t[h] != -1 && (*s)->tab[n]->t[h] != (*s)->tab[n]->root){
                     cp = (*s)->tab[n]->t[h];
+                    break;
                 }
             }
             (**s) = cp_s;
-            (*s)->tab[i]->root = cp;
+            (*s)->tab[n]->root = cp;
             backtraquing = (backtraquing + 1) % m; contador = -1;
         }
         

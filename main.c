@@ -15,7 +15,7 @@ int main(){
     char c;
     printf("File : ");
     // scanf("%s",pwd);
-    strcpy(pwd,"./gridHard.txt");
+    strcpy(pwd,"./gridMedium.txt");
     int grid = open(pwd, O_RDONLY);
     if(grid == -1){
         perror("File");
