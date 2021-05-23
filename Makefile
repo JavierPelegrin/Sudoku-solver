@@ -1,5 +1,5 @@
 CC=gcc
-EXEC=main
+EXEC=solver
 OBJS=main.o structure.o
 CFLAGS=-std=c99 -lm -Wextra -Wall -Werror -pedantic
 
@@ -11,8 +11,6 @@ endif
 $(EXEC) : ./obj/$(OBJS)
 	@$(CC) $(CFLAGS) $^ -o $@
 	@mv *.o ./obj
-	@mkdir -p bin
-	@mv $(EXEC) ./bin
 
 ./obj/%.o : %.c
 	@mkdir -p obj
@@ -21,6 +19,6 @@ $(EXEC) : ./obj/$(OBJS)
 main.o : $(OBJS)
 
 clean:
-	rm -fr ./obj ./bin
+	rm -fr ./obj
 clear:
-	rm -fr ./bin/$(EXEC)
+	rm -fr $(EXEC)
