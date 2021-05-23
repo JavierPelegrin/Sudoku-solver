@@ -203,7 +203,6 @@ void printNode(const sudoku s){
 sudoku solveSudoku(sudoku *s){
     int i = 0;
     int contador = 0;
-    pid_t p;
     while(isSolved(*s) != true){
         if(((*s)->tab[i])->root == 0){
             for(int j = 0; j < 9; j++){
@@ -238,51 +237,65 @@ sudoku solveSudoku(sudoku *s){
         }
 
         if(contador == 20 ){
-            p = fork();
+            int m = 2;
+            int i = 0;
+            while((*s)->tab[i]->sizeT != m){
+                i = (i+1)%81;
+                if(i == 80){
+                    m++;
+                }
+            }
+            int t[m];
+            int j = 0;
+            int a = 0;
+            while(j < 9){
+                if ((*s)->tab[i]->t[j] != -1){
+                    t[a] = (*s)->tab[i]->t[j];
+                    (*s)->tab[i]->t[j] = -1;
+                    a++;
+                }
+                j = (j + 1);
+            }
+
+            pid_t p = fork();
             if (p == -1){
                 perror("fork()");
                 exit(1);
             }else if (p == 0){
-                // padre
-                int i = 0;
-                while((*s)->tab[i]->sizeT != 2){
-                    i = (i+1)%81;
-                }
-                int j = 8;
-                while(j > 0){
-                    if ((*s)->tab[i]->t[j] != -1){
-                        break;
-                    }
-                    j = (j - 1);
-                }
+                // padre simpre encuentra el ultimo
+
+
                 // printf("padre : j = %d, id:%d, num %d\n",j,i,(*s)->tab[i]->t[j]);
-                (*s)->tab[i]->root = (*s)->tab[i]->t[j];
+                (*s)->tab[i]->root = t[0];
                 (*s)->solved++;
-                (*s)->tab[i]->t[j] = -1;
-                (*s)->tab[i]->sizeT--;
+                (*s)->tab[i]->sizeT = 1;
                 contador = -1;
                 //return *s;
                 return solveSudoku(s);
             }else{
                 // hijo
-                int i = 0;
-                while((*s)->tab[i]->sizeT != 2){
-                    i = (i+1)%81;
-                }
-                int j = 0;
-                while(j < 9){
-                    if ((*s)->tab[i]->t[j] != -1){
-                        break;
+                if(m == 3){
+                    pid_t p2 = fork();
+                    if(p2 == -1){
+                        perror("fork()");
+                        exit(1);
+                    }else if (p2 == 0){
+                        // padre
+                        (*s)->tab[i]->root = t[2];
+                        (*s)->tab[i]->sizeT = 1;
+                        (*s)->solved++;
+                        contador = -1;
+                        //return *s;
+                        return solveSudoku(s);
                     }
-                    j = (j + 1);
                 }
+
                 // printf("hijo : j = %d, id:%d, num %d\n",j,i,(*s)->tab[i]->t[j]);
                 
                 // printInfo(*s, i);
-                (*s)->tab[i]->root = (*s)->tab[i]->t[j];
+                (*s)->tab[i]->root = t[1];
                 (*s)->solved++;
-                (*s)->tab[i]->t[j] = -1;
-                (*s)->tab[i]->sizeT--;
+                (*s)->tab[i]->sizeT = 1;
                 contador = -1;
                 //return *s;
                 return solveSudoku(s);
@@ -313,14 +326,17 @@ void exportSudoku(const sudoku s){
     sprintf(c,"%d",s->tab[0]->root);
     write(f, c, 1);
     write(f," ",1);
-    for(int i = 1; i < 81; i++){
+    for(int i = 1; i < 80; i++){
         if (i%9 == 0){
+            lseek(f, -1, SEEK_CUR);
             write(f,"\n",1);
         }
         sprintf(c,"%d",s->tab[i]->root);
         write(f, c, 1);
         write(f," ",1);
     }
+    sprintf(c,"%d",s->tab[80]->root);
+    write(f, c, 1);
     free(c);
     close(f);
 }

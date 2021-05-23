@@ -12,6 +12,8 @@
 /*
 https://www.sudoku-online.org/
 
+girdUltraHard2 = #589
+
 gridUltraHard = #2231
 
 gridHard = #26695
@@ -25,7 +27,7 @@ int main(){
     char c;
     printf("File : ");
     scanf("%s",pwd);
-    // strcpy(pwd,"./gridUltraHard.txt");
+    // strcpy(pwd,"./gridUltraHard2.txt");
     int grid = open(pwd, O_RDONLY);
     if(grid == -1){
         perror("File");
