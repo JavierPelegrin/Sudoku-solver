@@ -1,7 +1,7 @@
 CC=gcc
 EXEC=solver
 OBJS=main.o structure.o
-CFLAGS=-std=c99 -lm -Wextra -Wall -Werror -pedantic
+CFLAGS=-std=c99 -lm -Wextra -Wall -pedantic -fopenmp
 
 ifeq ($(DEBUG),yes)
 	CFLAGS += -g

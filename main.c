@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <sys/stat.h> 
 #include <sys/types.h>
-
+#include <omp.h>
 
 #include "structure.h"
 
@@ -26,9 +26,10 @@ int main(){
 
     char pwd[64];
     char c;
-    printf("File : ");
-    scanf("%s",pwd);
-    // strcpy(pwd,"./gridUltraHard2.txt");
+    double start, stop;
+    printf("File : \n");
+    //scanf("%s",pwd);
+    strcpy(pwd,"./grid/gridUltraHard2.txt");
     int grid = open(pwd, O_RDONLY);
     if(grid == -1){
         perror("File");
@@ -43,11 +44,19 @@ int main(){
             i++;
         }
     }
+    start = omp_get_wtime();
     createLinks(&s);
+    stop = omp_get_wtime();
+    printf("Creation des links : %f\n",stop-start);
     printNode(s);
     // testLinks(s);
     printf("\n\nSolving ....\n");
+    start = omp_get_wtime();
     s = solveSudoku(&s);
+    
+    wait(NULL);
+    stop = omp_get_wtime();
+    printf("Résoudre le sudoku : %f",stop-start);
     printNode(s);
     printf("\n");
 

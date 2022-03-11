@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <omp.h>
 
 #include "structure.h"
 
@@ -24,9 +25,9 @@ struct s_sudoku {
 };
 
 
-// --- Debug part ---
+// --- Debug ---
 
-void printInfo(sudoku s, int i){
+void debug(sudoku s, int i){
     printf("info:\n");
     printf("\testado del sudoku: %d\n",s->solved);
     printf("\tnode id: %d\n",s->tab[i]->id);
@@ -292,7 +293,7 @@ sudoku solveSudoku(sudoku *s){
 
                 // printf("hijo : j = %d, id:%d, num %d\n",j,i,(*s)->tab[i]->t[j]);
                 
-                // printInfo(*s, i);
+                // debug(*s, i);
                 (*s)->tab[i]->root = t[1];
                 (*s)->solved++;
                 (*s)->tab[i]->sizeT = 1;
